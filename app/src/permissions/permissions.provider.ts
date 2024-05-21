@@ -1,26 +1,21 @@
 import { Provider } from '@nestjs/common';
-import { HasResources } from '@permissions-package/application/has-resources';
 import { DataSource } from 'typeorm';
+import useCases from '@permissions-package/application';
+
+const useCaseProviderGenerator = (): Array<Provider> => {
+  const useCasesProvider = []
+  
+  for (const useCase of Object.values(useCases)) {
+    useCasesProvider.push({
+      provide: useCase.name,
+      useFactory: (database: any) => new useCase(database),
+      inject: ['Database'],
+    })
+  };
+  return useCasesProvider
+}
 
 export const PermissionsProvider: Array<Provider> = [
-  // {
-  //   provide: 'Database',
-  //   useFactory: async () => {
-  //     const dataSource = new DataSource({
-  //       type: 'mysql',
-  //       host: 'mysql',
-  //       port: 3306,
-  //       username: 'root',
-  //       password: '',
-  //       database: 'permissions',
-  //       entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  //       synchronize: true,
-  //       logging: true,
-  //     });
-
-  //     return dataSource.initialize();
-  //   },
-  // },
   {
     provide: 'Database',
     useFactory: async () => {
@@ -39,9 +34,5 @@ export const PermissionsProvider: Array<Provider> = [
       return await dataSource.initialize();
     },
   },
-  {
-    provide: 'HasResources',
-    useFactory: (database: any) => new HasResources(database),
-    inject: ['Database'],
-  },
+  ...useCaseProviderGenerator()
 ];

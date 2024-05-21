@@ -82,7 +82,7 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
-      "@permissions-package/(.*)$": "<rootDir>/@permissions-package/src/$1"
+      "^@permissions-package/(.*)$": "<rootDir>/@permissions-package/src/$1"
     }
   }
 }
