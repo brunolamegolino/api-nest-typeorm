@@ -18,7 +18,9 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@permissions-package/*": ["./src/@permissions-package/src/*"],
+      "@permissions-package/*": [
+        "./src/@permissions-package/src/*"
+      ],
     }
   }
 }

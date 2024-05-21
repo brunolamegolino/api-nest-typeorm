@@ -4,7 +4,7 @@ import { DataSource } from 'typeorm';
 
 export const PermissionsProvider: Array<Provider> = [
   // {
-  //   provide: 'Mysql',
+  //   provide: 'Database',
   //   useFactory: async () => {
   //     const dataSource = new DataSource({
   //       type: 'mysql',
@@ -22,7 +22,7 @@ export const PermissionsProvider: Array<Provider> = [
   //   },
   // },
   {
-    provide: 'Postgres',
+    provide: 'Database',
     useFactory: async () => {
       const dataSource = new DataSource({
         type: 'postgres',
@@ -33,15 +33,15 @@ export const PermissionsProvider: Array<Provider> = [
         database: 'permissions',
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: true,
-        logging: true,
+        logging: ['error'],
       });
 
-      return dataSource.initialize();
+      return await dataSource.initialize();
     },
   },
   {
-    provide: HasResources,
+    provide: 'HasResources',
     useFactory: (database: any) => new HasResources(database),
-    inject: ['Postgres'],
+    inject: ['Database'],
   },
 ];

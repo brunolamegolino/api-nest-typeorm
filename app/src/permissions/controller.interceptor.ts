@@ -2,30 +2,38 @@ import {
   CallHandler,
   ExecutionContext,
   HttpException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NestInterceptor,
 } from '@nestjs/common';
-// import mongoose from 'mongoose';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class ControllerInteceptor implements NestInterceptor {
+  constructor(
+    @Inject('Database')readonly database: DataSource
+  ) {}
+
   async intercept(
     context: ExecutionContext,
     next: CallHandler<any>,
   ): Promise<any> {
-    // const session = await mongoose.startSession();
+    const session = this.database.createQueryRunner()
+    session.connect()
     try {
-      // session.startTransaction();
+      session.startTransaction()
       const result = next.handle();
-      // session.commitTransaction();
+      session.commitTransaction();
+      
       return result;
+
     } catch (error: any) {
-      // session.abortTransaction();
+      session.rollbackTransaction();
+      session.release()
       if (error instanceof HttpException && error.getStatus() < 500) {
         throw error;
       }
-
       throw new InternalServerErrorException('Erro interno no servidor');
     }
   }
