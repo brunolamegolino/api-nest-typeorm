@@ -7,8 +7,7 @@ export class GetPermissions {
     this.permissionRepository = this.database.getRepository(Permission.name);
   }
 
-  public execute(resources: string): string {
-    this.permissionRepository.find();
-    return resources;
+  public async execute(resources: string): Promise<Array<Permission>> {
+    return await this.permissionRepository.find();
   }
 }
