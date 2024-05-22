@@ -4,11 +4,17 @@ import { Base } from "./base";
 @Entity()
 export class Permission extends Base {
     @PrimaryGeneratedColumn()
-    id: string;
+    id: string = null;
 
     @Column()
-    account_id: string;
+    account_id: string = null;
 
     @Column()
-    name: string;
+    group_id: string = null;
+
+    @Column()
+    action: string = null;
+
+    @Column()
+    recurso_id: string = null;
 }

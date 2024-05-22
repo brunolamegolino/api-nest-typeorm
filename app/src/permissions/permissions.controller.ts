@@ -2,13 +2,17 @@ import { Controller, Get, Inject, UseInterceptors } from '@nestjs/common';
 import { ControllerInteceptor } from './controller.interceptor';
 import { Permission } from '@permissions-package/domain/permission.entity';
 
+interface UseCase {
+  execute(...variables: any): any;
+}
+
 @UseInterceptors(ControllerInteceptor)
 @Controller('permissions')
 export class PermissionsController {
   constructor(
-    @Inject('GetPermissionsUsecase')readonly GetPermissionsUsecase: any,
+    @Inject('GetPermissionsUsecase')readonly GetPermissionsUsecase: UseCase,
+    @Inject('HasPermissionUseCase')readonly HasPermissionUseCase: UseCase,
     // @Inject('HasResources')readonly hasResources: HasResources,
-    // @Inject('HasPermission')readonly hasResources: HasResources,
   ) {}
 
   @Get()
@@ -18,7 +22,13 @@ export class PermissionsController {
     // usuario com ultimo token
     // => usuario logado
     // encontrar grupos referente a conta: cliente_id
-    // await this.hasPermission.execute(accontId); // em algum dos grupos tem permissoes de ler permissoes
+
+    await this.HasPermissionUseCase.execute({
+      account_id: accontId,
+      group_id: [1],
+      action: 'read',
+      recurso_id: '1',
+    }); // em algum dos grupos tem permissoes de ler permissoes
     return await this.GetPermissionsUsecase.execute(accontId); // listar permissoes
   }
 }
