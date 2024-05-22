@@ -20,7 +20,7 @@ describe('PermissionsController', () => {
   });
 
   it('should get permissions', async () => {
-    const permissions = await controller.getPermissions();
+    const permissions = await controller.getPermissions('1');
     expect(permissions).toBeInstanceOf(Array<Permission>);
   });
 });

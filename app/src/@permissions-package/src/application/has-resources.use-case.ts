@@ -1,6 +1,6 @@
 import { DataSource, Repository } from "typeorm";
 
-export class HasResources {
+export class HasResourcesUseCase {
 
   constructor(private readonly database: DataSource) {
   }

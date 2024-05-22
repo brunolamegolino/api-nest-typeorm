@@ -7,5 +7,8 @@ export class Permission extends Base {
     id: string;
 
     @Column()
+    account_id: string;
+
+    @Column()
     name: string;
 }
