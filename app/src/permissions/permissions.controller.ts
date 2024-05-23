@@ -10,9 +10,9 @@ interface UseCase {
 @Controller('permissions')
 export class PermissionsController {
   constructor(
-    @Inject('GetPermissionsUsecase')readonly GetPermissionsUsecase: UseCase,
-    @Inject('HasPermissionUseCase')readonly HasPermissionUseCase: UseCase,
-    // @Inject('HasResources')readonly hasResources: HasResources,
+    @Inject('GetPermissionsUsecase') readonly GetPermissionsUsecase: UseCase,
+    @Inject('HasPermissionUseCase') readonly HasPermissionUseCase: UseCase,
+    @Inject('GetGroupsUsecase') readonly GetGroupsUsecase: UseCase,
   ) {}
 
   @Get()
@@ -21,14 +21,19 @@ export class PermissionsController {
     // usuario logado
     // usuario com ultimo token
     // => usuario logado
-    // encontrar grupos referente a conta: cliente_id
+
+    const usuarioId = 1
+    const groups = await this.GetGroupsUsecase.execute({
+      account_id: accontId,
+      user_id: usuarioId,
+    })// encontrar grupos referente a conta: cliente_id
 
     await this.HasPermissionUseCase.execute({
       account_id: accontId,
-      group_id: [1],
+      groups: groups,
       action: 'read',
       recurso_id: '1',
     }); // em algum dos grupos tem permissoes de ler permissoes
-    return await this.GetPermissionsUsecase.execute(accontId); // listar permissoes
+    return await this.GetPermissionsUsecase.execute({ account_id: accontId }); // listar permissoes
   }
 }

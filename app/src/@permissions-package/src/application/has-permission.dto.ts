@@ -1,4 +1,5 @@
 import { Base } from "@permissions-package/domain/base";
+import { Group } from "@permissions-package/domain/group.entity";
 import { IsArray, IsString } from "class-validator";
 
 export class DtoHasPermission extends Base {
@@ -6,7 +7,7 @@ export class DtoHasPermission extends Base {
     account_id: string = null;
     
     @IsArray()
-    group_id: Array<string> = null;
+    groups: Array<Group> = null;
     
     @IsString()
     action: string = null;

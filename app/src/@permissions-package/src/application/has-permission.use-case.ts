@@ -14,7 +14,7 @@ export class HasPermissionUseCase {
 
     const permissions = await this.permissionRepository.findBy({
       account_id: dto.account_id,
-      group_id: In(dto.group_id),
+      group_id: In(dto.groups.map(g => g.id)),
       action: dto.action,
       recurso_id: dto.recurso_id,
     });
