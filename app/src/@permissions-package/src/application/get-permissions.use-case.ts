@@ -1,6 +1,6 @@
-import { DataSource, Equal, Repository  } from "typeorm";
-import { Permission } from "@permissions-package/domain/permission.entity";
-import { GetPermissionsDto } from "./get-permissions.dto";
+import { DataSource, Equal, Repository } from 'typeorm';
+import { Permission } from '@permissions-package/domain/permission.entity';
+import { GetPermissionsDto } from './get-permissions.dto';
 
 export class GetPermissionsUsecase {
   permissionRepository: Repository<Permission>;
@@ -12,12 +12,12 @@ export class GetPermissionsUsecase {
     const dto = await GetPermissionsDto.create<GetPermissionsDto>(data);
     const permissions = await this.permissionRepository.findBy({
       account_id: Equal(dto.account_id),
-    }); 
+    });
 
     if (permissions.length === 0) {
-      throw new Error("Sem permissão para o recurso informado!");
+      throw new Error('Sem permissão para o recurso informado!');
     }
 
-    return permissions
+    return permissions;
   }
 }

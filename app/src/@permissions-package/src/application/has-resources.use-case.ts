@@ -1,9 +1,7 @@
-import { DataSource, Repository } from "typeorm";
+import { DataSource } from 'typeorm';
 
 export class HasResourcesUseCase {
-
-  constructor(private readonly database: DataSource) {
-  }
+  constructor(private readonly database: DataSource) {}
 
   public execute(resources: string): any {
     return resources;

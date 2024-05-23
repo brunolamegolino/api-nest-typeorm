@@ -3,17 +3,17 @@ import { DataSource } from 'typeorm';
 import useCases from '@permissions-package/application';
 
 const useCaseProviderGenerator = (): Array<Provider> => {
-  const useCasesProvider = []
-  
+  const useCasesProvider = [];
+
   for (const useCase of Object.values(useCases)) {
     useCasesProvider.push({
       provide: useCase.name,
       useFactory: (database: any) => new useCase(database),
       inject: ['Database'],
-    })
-  };
-  return useCasesProvider
-}
+    });
+  }
+  return useCasesProvider;
+};
 
 export const PermissionsProvider: Array<Provider> = [
   {
@@ -34,5 +34,5 @@ export const PermissionsProvider: Array<Provider> = [
       return await dataSource.initialize();
     },
   },
-  ...useCaseProviderGenerator()
+  ...useCaseProviderGenerator(),
 ];

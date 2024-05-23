@@ -11,26 +11,23 @@ import { DataSource } from 'typeorm';
 
 @Injectable()
 export class ControllerInteceptor implements NestInterceptor {
-  constructor(
-    @Inject('Database')readonly database: DataSource
-  ) {}
+  constructor(@Inject('Database') readonly database: DataSource) {}
 
   async intercept(
     context: ExecutionContext,
     next: CallHandler<any>,
   ): Promise<any> {
-    const session = this.database.createQueryRunner()
-    session.connect()
+    const session = this.database.createQueryRunner();
+    session.connect();
     try {
-      session.startTransaction()
+      session.startTransaction();
       const result = next.handle();
       session.commitTransaction();
-      
-      return result;
 
+      return result;
     } catch (error: any) {
       session.rollbackTransaction();
-      session.release()
+      session.release();
       if (error instanceof HttpException && error.getStatus() < 500) {
         throw error;
       }

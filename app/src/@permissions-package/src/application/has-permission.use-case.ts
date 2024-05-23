@@ -1,6 +1,6 @@
-import { Permission } from "@permissions-package/domain/permission.entity";
-import { DataSource, Repository, In } from "typeorm";
-import { DtoHasPermission } from "./has-permission.dto";
+import { Permission } from '@permissions-package/domain/permission.entity';
+import { DataSource, Repository, In } from 'typeorm';
+import { DtoHasPermission } from './has-permission.dto';
 
 export class HasPermissionUseCase {
   permissionRepository: Repository<Permission>;
@@ -14,13 +14,13 @@ export class HasPermissionUseCase {
 
     const permissions = await this.permissionRepository.findBy({
       account_id: dto.account_id,
-      group_id: In(dto.groups.map(g => g.id)),
+      group_id: In(dto.groups.map((g) => g.id)),
       action: dto.action,
       recurso_id: dto.recurso_id,
     });
 
     if (permissions.length === 0) {
-      throw new Error("Sem permissão para o recurso informado!");
+      throw new Error('Sem permissão para o recurso informado!');
     }
 
     return true;
