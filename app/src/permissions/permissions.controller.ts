@@ -1,15 +1,20 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Controller,
   Get,
   Inject,
   Param,
+  Request,
   UseInterceptors,
+  All,
 } from '@nestjs/common';
 import { ControllerInteceptor } from './controller.interceptor';
 import { Group } from '@permissions-package/domain/group.entity';
 import { GetPermissionsUsecase } from '@permissions-package/application/get-permissions.use-case';
 import { HasPermissionUseCase } from '@permissions-package/application/has-permission.use-case';
 import { GetGroupsUsecase } from '@permissions-package/application/get-groups.use-case';
+import { RedirectUseCase } from '@permissions-package/application/redirect.use-case';
+import { group } from 'console';
 
 @UseInterceptors(ControllerInteceptor)
 @Controller('permissions')
@@ -22,28 +27,49 @@ export class PermissionsController {
     @Inject('GetGroupsUsecase') readonly GetGroupsUsecase: GetGroupsUsecase,
   ) {}
 
-  @Get('get-permissions/:accontId')
+  @Get('get-permissions/:accountId')
   public async getPermissions(
-    @Param('accontId') accontId: string,
+    @Param('accountId') accountId: string,
   ): Promise<Array<Group>> {
     // ==> pegar todas as permissões de uma conta
     // usuario logado
     // usuario com ultimo token
     // => usuario logado
+    const data: any = { account_id: accountId };
+    data.user_id = 1;
 
-    const userId = 1;
-    const groups = await this.GetGroupsUsecase.execute({
-      account_id: accontId,
-      user_id: userId,
-    }); // encontrar grupos referente a conta: cliente_id
+    data.groups = await this.GetGroupsUsecase.execute(data); // encontrar grupos referente a conta: cliente_id
 
-    await this.HasPermissionUseCase.execute({
-      account_id: accontId,
-      groups: groups,
-      action: 'read',
-      recurso_id: '1',
-    }); // em algum dos grupos tem permissoes de ler permissoes
+    data.action = 'read';
+    data.recurso_id = '1';
+    await this.HasPermissionUseCase.execute(data); // em algum dos grupos tem permissoes de ler permissoes
 
-    return groups;
+    return data.groups;
+  }
+}
+
+// user -> login
+// email senha -> login -> retorna token e permissões
+
+// user -> lista de empresas
+// token -> Get gateway/empresa -> tem permissão -> Get dominio/empresa
+
+// user -> comunicacao da empresa
+// token -> Get gateway/comunicacao -> tem permissão comunicacao -> tem permissao para essa empresa -> Get dominio/comunicacao
+@UseInterceptors(ControllerInteceptor)
+@Controller('')
+export class ValidatorController {
+  constructor(
+    @Inject('RedirectUseCase') readonly RedirectUseCase: RedirectUseCase,
+  ) {}
+
+  @All('*')
+  public async validator(@Request() request: Request) {
+    console.log('validator');
+
+    return await this.RedirectUseCase.execute({
+      ...request,
+      baseURL: 'http://localhost:3000',
+    });
   }
 }

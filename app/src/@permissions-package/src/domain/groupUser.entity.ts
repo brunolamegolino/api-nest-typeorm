@@ -4,7 +4,7 @@ import { Base } from './base';
 @Entity()
 export class GroupUser extends Base {
   @PrimaryGeneratedColumn()
-  id: string = null;
+  id: number = null;
 
   @Column()
   group_id: string = null;

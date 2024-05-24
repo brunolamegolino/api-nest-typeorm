@@ -17,9 +17,12 @@ export class GetGroupsUsecase {
       user_id: Equal(dto.user_id),
     });
 
-    const groups = await this.grupoRepository.findBy({
-      account_id: Equal(dto.account_id),
-      id: In(groupUser.map((g) => g.group_id)),
+    const groups = await this.grupoRepository.find({
+      where: {
+        account_id: Equal(dto.account_id),
+        id: In(groupUser.map((g) => g.group_id)),
+      },
+      relations: ['permissions'],
     });
 
     return groups;

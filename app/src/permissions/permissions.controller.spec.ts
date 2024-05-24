@@ -23,7 +23,7 @@ describe('PermissionsController', () => {
         entity.name
           .replace(/(?<!^)([A-Z])/g, (char) => '_' + char.toLowerCase())
           .toLowerCase() + '_id_seq';
-      await database.createQueryBuilder().delete().from(entity.name).execute();
+      await database.getRepository(entity.name).delete({});
       const queryRunner = database.createQueryRunner();
       await queryRunner.query(`ALTER SEQUENCE ${seq} RESTART WITH 1`);
       await queryRunner.release();
@@ -35,25 +35,25 @@ describe('PermissionsController', () => {
   });
 
   it('should get permissions', async () => {
-    await database.manager.save(
-      await Permission.create(
-        {
-          account_id: '1',
-          group_id: '1',
-          action: 'read',
-          recurso_id: '1',
-        },
-        true,
-      ),
-    );
-
-    await database.manager.save(
+    const group = await database.manager.save(
       await Group.create({
         id: '1',
         account_id: '1',
         name: 'grupo 1',
       }),
     );
+
+    const permission = await Permission.create(
+      {
+        account_id: '1',
+        group: group,
+        action: 'read',
+        recurso_id: '1',
+      },
+      true,
+    );
+
+    await database.manager.save(permission);
 
     await database.manager.save(
       await GroupUser.create(
@@ -68,6 +68,7 @@ describe('PermissionsController', () => {
     const accontId = '1';
     const permissions = await controller.getPermissions(accontId);
     expect(permissions[0]).toBeInstanceOf(Group);
-    // expect(permissions[0].permissions[0]).toBeInstanceOf(Permission);
+    expect(permissions[0].permissions).toBeInstanceOf(Array);
+    expect(permissions[0].permissions[0]).toBeInstanceOf(Permission);
   });
 });

@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
-import { PermissionsController } from './permissions.controller';
+import {
+  PermissionsController,
+  ValidatorController,
+} from './permissions.controller';
 import { PermissionsProvider } from './permissions.provider';
 
 @Module({
-  controllers: [PermissionsController],
+  controllers: [PermissionsController, ValidatorController],
   providers: [...PermissionsProvider],
 })
 export class PermissionsModule {}

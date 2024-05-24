@@ -1,16 +1,26 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Base } from './base';
+import { Group } from './group.entity';
 
 @Entity()
 export class Permission extends Base {
   @PrimaryGeneratedColumn()
-  id: string = null;
+  id: number = null;
 
   @Column()
   account_id: string = null;
 
-  @Column()
-  group_id: string = null;
+  @ManyToOne(() => Group, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'group_id', referencedColumnName: 'id' })
+  group: Group = null;
 
   @Column()
   action: string = null;
