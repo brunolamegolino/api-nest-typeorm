@@ -14,7 +14,8 @@ import { GetPermissionsUsecase } from '@permissions-package/application/get-perm
 import { HasPermissionUseCase } from '@permissions-package/application/has-permission.use-case';
 import { GetGroupsUsecase } from '@permissions-package/application/get-groups.use-case';
 import { RedirectUseCase } from '@permissions-package/application/redirect.use-case';
-import { group } from 'console';
+import { GetResourceUseCase } from '@permissions-package/application/get-resource.use-case';
+import { AccountHasResourceUseCase } from '@permissions-package/application/account-has-resource.use-case';
 
 @UseInterceptors(ControllerInteceptor)
 @Controller('permissions')
@@ -48,28 +49,33 @@ export class PermissionsController {
   }
 }
 
-// user -> login
-// email senha -> login -> retorna token e permissões
-
-// user -> lista de empresas
-// token -> Get gateway/empresa -> tem permissão -> Get dominio/empresa
-
-// user -> comunicacao da empresa
-// token -> Get gateway/comunicacao -> tem permissão comunicacao -> tem permissao para essa empresa -> Get dominio/comunicacao
 @UseInterceptors(ControllerInteceptor)
 @Controller('')
 export class ValidatorController {
   constructor(
     @Inject('RedirectUseCase') readonly RedirectUseCase: RedirectUseCase,
+    @Inject('GetResourceUseCase')
+    readonly GetResourceUseCase: GetResourceUseCase,
+    @Inject('AccountHasResourceUseCase')
+    readonly AccountHasResourceUseCase: AccountHasResourceUseCase,
   ) {}
 
-  @All('*')
-  public async validator(@Request() request: Request) {
-    console.log('validator');
+  @All('*/:id')
+  public async validator(
+    @Request() request: any,
+    @Param('id') resourceElementId: number,
+  ) {
+    const data: any = {
+      account_id: request.headers['account-id'],
+      resource: request.url.split('/')[1],
+    };
 
+    this.AccountHasResourceUseCase.execute(data);
+
+    const recurso = await this.GetResourceUseCase.execute(data);
     return await this.RedirectUseCase.execute({
       ...request,
-      baseURL: 'http://localhost:3000',
+      baseURL: recurso.domain,
     });
   }
 }

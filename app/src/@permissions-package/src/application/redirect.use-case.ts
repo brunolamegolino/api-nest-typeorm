@@ -15,7 +15,6 @@ export class RedirectUseCase {
       data: JSON.stringify(body),
     };
 
-    console.log(config);
     return config;
     // const response = await axios.request(config);
     // return response.data;
