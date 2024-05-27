@@ -7,6 +7,10 @@ import {
   Request,
   UseInterceptors,
   All,
+  UseGuards,
+  Post,
+  Body,
+  RawBody,
 } from '@nestjs/common';
 import { ControllerInteceptor } from './controller.interceptor';
 import { Group } from '@permissions-package/domain/group.entity';
@@ -16,7 +20,29 @@ import { GetGroupsUsecase } from '@permissions-package/application/get-groups.us
 import { RedirectUseCase } from '@permissions-package/application/redirect.use-case';
 import { GetResourceUseCase } from '@permissions-package/application/get-resource.use-case';
 import { AccountHasResourceUseCase } from '@permissions-package/application/account-has-resource.use-case';
+import { AuthGuard } from './auth-guard';
+import { ApiBody, ApiHeader } from '@nestjs/swagger';
+import { DataSource } from 'typeorm';
 
+@UseInterceptors(ControllerInteceptor)
+@Controller('auth')
+export class AuthController {
+  constructor(@Inject('Database') readonly database: DataSource) {}
+
+  @ApiBody({
+    schema: {
+      properties: { email: { type: 'string' }, pass: { type: 'string' } },
+    },
+  })
+  @Post()
+  async signIn(@Body() { email, pass }: any): Promise<any> {
+    const authGuard = new AuthGuard(this.database);
+    return authGuard.signIn(email, pass);
+  }
+}
+
+@ApiHeader({ name: 'account-id' })
+@UseGuards(AuthGuard)
 @UseInterceptors(ControllerInteceptor)
 @Controller('permissions')
 export class PermissionsController {
@@ -49,6 +75,8 @@ export class PermissionsController {
   }
 }
 
+@ApiHeader({ name: 'account-id' })
+@UseGuards(AuthGuard)
 @UseInterceptors(ControllerInteceptor)
 @Controller('')
 export class ValidatorController {
