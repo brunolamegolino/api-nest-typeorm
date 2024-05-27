@@ -1,26 +1,32 @@
 import { NotFoundException } from '@nestjs/common';
-import { Account } from '@permissions-package/domain/account.entity';
+import { Resource } from '@permissions-package/domain/resouce.entity';
 import { DataSource, Equal, Repository } from 'typeorm';
 
 export class AccountHasResourceUseCase {
-  accountRepository: Repository<Account>;
+  resourceRepository: Repository<Resource>;
 
   constructor(private readonly database: DataSource) {
-    this.accountRepository = this.database.getRepository(Account.name);
+    this.resourceRepository = this.database.getRepository(Resource.name);
   }
 
-  public async execute(data: any): Promise<Error | true> {
-    const resouce = await this.accountRepository.findOne({
+  public async execute(data: any): Promise<true> {
+    const dto: any = data;
+
+    const resouce = await this.resourceRepository.findOne({
       where: {
-        // name: Equal(data.resource),
-        id: Equal(data.account_id),
+        name: Equal(dto.resource_name),
+        product: {
+          plans: {
+            account: {
+              id: Equal(dto.account_id),
+            },
+          },
+        },
       },
-      relations: ['plans', 'plans.products', 'plans.products.resources'],
-      loadEagerRelations: false,
     });
 
     if (!resouce) {
-      throw new NotFoundException('Recurso não encontrado!');
+      throw new NotFoundException(`Conta não possui o produto!`);
     }
 
     return true;

@@ -86,6 +86,38 @@ describe('PermissionsController', () => {
   });
 
   it('validate permission before to redirect', async () => {
+    const group = await database.manager.save(
+      await Group.create({
+        id: '1',
+        account_id: '1',
+        name: 'grupo 1',
+      }),
+    );
+
+    const permission = await Permission.create(
+      {
+        account_id: '1',
+        group: group,
+        action: 'read',
+        recurso_id: '1',
+        elements: ',1,',
+        elements_filter: 'include',
+      },
+      true,
+    );
+
+    await database.manager.save(permission);
+
+    await database.manager.save(
+      await GroupUser.create(
+        {
+          group_id: '1',
+          user_id: '1',
+        },
+        true,
+      ),
+    );
+
     const product = await database.manager.save(
       await Product.create<Product>(
         {

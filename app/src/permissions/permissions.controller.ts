@@ -58,24 +58,34 @@ export class ValidatorController {
     readonly GetResourceUseCase: GetResourceUseCase,
     @Inject('AccountHasResourceUseCase')
     readonly AccountHasResourceUseCase: AccountHasResourceUseCase,
+    @Inject('GetGroupsUsecase') readonly GetGroupsUsecase: GetGroupsUsecase,
+    @Inject('HasPermissionUseCase')
+    readonly HasPermissionUseCase: HasPermissionUseCase,
   ) {}
 
   @All('*/:id')
   public async validator(
     @Request() request: any,
-    @Param('id') resourceElementId: number,
+    @Param('id') permissionElementId: number,
   ) {
     const data: any = {
+      user_id: 1,
       account_id: request.headers['account-id'],
-      resource: request.url.split('/')[1],
+      resource_name: request.url.split('/')[1],
+      permission_element_id: permissionElementId,
     };
 
-    this.AccountHasResourceUseCase.execute(data);
+    await this.AccountHasResourceUseCase.execute(data);
 
-    const recurso = await this.GetResourceUseCase.execute(data);
+    data.resource = await this.GetResourceUseCase.execute(data);
+
+    data.groups = await this.GetGroupsUsecase.execute(data);
+
+    await this.HasPermissionUseCase.execute(data);
+
     return await this.RedirectUseCase.execute({
       ...request,
-      baseURL: recurso.domain,
+      baseURL: data.resource.domain,
     });
   }
 }

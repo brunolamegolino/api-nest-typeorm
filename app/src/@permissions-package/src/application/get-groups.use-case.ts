@@ -12,7 +12,7 @@ export class GetGroupsUsecase {
   }
 
   public async execute(data: any): Promise<Array<Group>> {
-    const dto = data;
+    const dto: { user_id: number; account_id: string } = data;
     const groupUser = await this.grupoUserRepository.findBy({
       user_id: Equal(dto.user_id),
     });

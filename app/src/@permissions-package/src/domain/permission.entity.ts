@@ -27,4 +27,10 @@ export class Permission extends Base {
 
   @Column()
   recurso_id: string = null;
+
+  @Column({ nullable: true })
+  elements_filter: string = null;
+
+  @Column({ nullable: true })
+  elements: string = null;
 }
