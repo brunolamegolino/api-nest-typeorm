@@ -15,6 +15,12 @@ describe('PermissionsController', () => {
   let validatorController: ValidatorController;
   let database: DataSource;
 
+  let account: Account;
+  let group: Group;
+  let user: User;
+  let resource: Resource;
+  let permission: Permission;
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PermissionsController, ValidatorController],
@@ -30,59 +36,21 @@ describe('PermissionsController', () => {
       // await queryRunner.query(`ALTER SEQUENCE ${seq} RESTART WITH 1`);
       // await queryRunner.release();
     }
-  });
 
-  it('should be defined', async () => {
-    expect(permissionsController).toBeDefined();
-    expect(validatorController).toBeDefined();
+    account = await database.manager.save<Account>(await Account.create<Account>({}));
+    group = await database.manager.save<Group>(await Group.create<Group>({ account: account, name: 'grupo 1' }));
+    user = await database.manager.save<User>(await User.create<User>({ email: 'email', pass: 'pass', groups: [group] }));
+    resource = await database.manager.save<Resource>(await Resource.create<Resource>({ product: null, domain: '172.0.0.1:3000', name: 'permissions' }));
+    permission = await database.manager.save<Permission>(await Permission.create<Permission>({ account: account, group: group, action: 'read', resource: resource }));
+
+    const product = await database.manager.save(await Product.create<Product>({ name: 'Assinatura' }));
+    const resource2 = await database.manager.save<Resource>(await Resource.create<Resource>({ product, domain: '172.0.0.1:3000', name: 'empresa' }, true));
+    await database.manager.save(await Plan.create<Plan>({ account, products: [product] }));
+    await database.manager.save<Permission>(await Permission.create<Permission>({ account, group, action: 'read', resource: resource2 }, true));
   });
 
   it('should get permissions', async () => {
-    const account = await database.manager.save<Account>(await Account.create<Account>({}, true));
-
-    const group = await database.manager.save<Group>(
-      await Group.create<Group>(
-        {
-          account: account,
-          name: 'grupo 1',
-        },
-        true,
-      ),
-    );
-
-    const user = await database.manager.save<User>(
-      await User.create<User>(
-        {
-          email: 'email',
-          pass: 'pass',
-          groups: [group],
-        },
-        true,
-      ),
-    );
-
-    const resource = await database.manager.save<Resource>(
-      await Resource.create<Resource>(
-        {
-          product: null,
-          domain: '172.0.0.1:3000',
-          name: 'permissions',
-        },
-        true,
-      ),
-    );
-
-    await database.manager.save<Permission>(
-      await Permission.create<Permission>(
-        {
-          account: account,
-          group: group,
-          action: 'read',
-          resource: resource,
-        },
-        true,
-      ),
-    );
+    expect(permission).toBeInstanceOf(Permission);
 
     const groups = await permissionsController.getPermissions({ user }, account.id);
     expect(groups[0]).toBeInstanceOf(Group);
@@ -90,86 +58,8 @@ describe('PermissionsController', () => {
     expect(groups[0].permissions[0]).toBeInstanceOf(Permission);
   });
 
-  // it('validate permission before to redirect', async () => {
-  //   const group = await database.manager.save(
-  //     await Group.create({
-  //       id: '1',
-  //       account_id: '1',
-  //       name: 'grupo 1',
-  //     }),
-  //   );
-
-  //   const permission = await Permission.create(
-  //     {
-  //       account_id: '1',
-  //       group: group,
-  //       action: 'read',
-  //       recurso_id: '1',
-  //       elements: ',1,',
-  //       elements_filter: 'include',
-  //     },
-  //     true,
-  //   );
-
-  //   await database.manager.save(permission);
-
-  //   await database.manager.save(
-  //     await GroupUser.create(
-  //       {
-  //         group_id: '1',
-  //         user_id: '1',
-  //       },
-  //       true,
-  //     ),
-  //   );
-
-  //   const product = await database.manager.save(
-  //     await Product.create<Product>(
-  //       {
-  //         name: 'Assinatura',
-  //       },
-  //       true,
-  //     ),
-  //   );
-
-  //   await database.manager.save(
-  //     await Resource.create<Resource>(
-  //       {
-  //         name: 'empresa',
-  //         product: product,
-  //         domain: '127.0.0.1',
-  //       },
-  //       true,
-  //     ),
-  //   );
-
-  //   const account = await database.manager.save(
-  //     await Account.create<Account>({}, true),
-  //   );
-  //   await database.manager.save(
-  //     await Plan.create<Plan>(
-  //       {
-  //         account: account,
-  //         products: [product],
-  //       },
-  //       true,
-  //     ),
-  //   );
-
-  //   const redirect = await validatorController.validator(
-  //     {
-  //       ,
-  //       url: '/empresa/1',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'account-id': 1,
-  //       },
-  //       body: {
-  //         account_id: '1',
-  //       },
-  //     },
-  //     1,
-  //   );
-  //   expect(true).toBe(true);
-  // });
+  it('validate permission before to redirect', async () => {
+    const redirect = await validatorController.validator({ user, method: 'GET', url: `/empresa/1`, headers: { 'Content-Type': 'application/json', 'account-id': account.id } }, undefined, undefined);
+    expect(true).toBe(true);
+  });
 });

@@ -14,11 +14,11 @@ export class AccountHasResourceUseCase {
 
     const resouce = await this.resourceRepository.findOne({
       where: {
-        name: Equal(dto.resource_name),
+        name: Equal(dto.resource.name),
         product: {
           plans: {
             account: {
-              id: Equal(dto.account_id),
+              id: Equal(dto.account.id),
             },
           },
         },

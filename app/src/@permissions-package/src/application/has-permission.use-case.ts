@@ -34,9 +34,7 @@ export class HasPermissionUseCase {
       .getMany();
 
     if (permissions.length === 0) {
-      throw new UnauthorizedException(
-        'Sem permissão para o recurso informado!',
-      );
+      throw new UnauthorizedException('Sem permissão para o recurso informado!');
     }
 
     return true;

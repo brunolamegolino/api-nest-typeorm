@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Controller, Get, Inject, Param, Request, UseInterceptors, All, UseGuards, Post, Body } from '@nestjs/common';
+import { Controller, Get, Inject, Param, Request, UseInterceptors, All, UseGuards, Post, Body, BadRequestException } from '@nestjs/common';
 import { ControllerInteceptor } from './controller.interceptor';
 import { Group } from '@permissions-package/domain/group.entity';
 import { GetPermissionsUsecase } from '@permissions-package/application/get-permissions.use-case';
@@ -14,6 +14,7 @@ import { DataSource } from 'typeorm';
 import { Account } from '@permissions-package/domain/account.entity';
 import { Permission } from '@permissions-package/domain/permission.entity';
 import { Resource } from '@permissions-package/domain/resouce.entity';
+import { permission } from 'process';
 
 @UseInterceptors(ControllerInteceptor)
 @Controller('auth')
@@ -79,13 +80,21 @@ export class ValidatorController {
     readonly HasPermissionUseCase: HasPermissionUseCase,
   ) {}
 
-  @All('*/:id')
-  public async validator(@Request() request: any, @Param('id') permissionElementId: number) {
+  private getActionFromMethod(method: string): string {
+    if ('GET' === method) return 'read';
+    if ('DELETE' === method) return 'delete';
+    if ('POST' === method) return 'create';
+    if (['PUT', 'PATCH'].includes(method)) return 'update';
+    throw new BadRequestException();
+  }
+
+  @All('*/:elementId')
+  public async validator(@Request() request: any, @Param('elementId') elementId: string, @Body() body: any): Promise<any> {
     const data: any = {
-      user_id: 1,
-      account_id: request.headers['account-id'],
-      resource_name: request.url.split('/')[1],
-      permission_element_id: permissionElementId,
+      user: request.user,
+      account: await Account.create<Partial<Account>>({ id: request.headers['account-id'] }),
+      resource: await Resource.create<Partial<Resource>>({ name: request.url.split('/')[1] }),
+      permission: await Permission.create<Partial<Permission>>({ action: this.getActionFromMethod(request.method), elements: elementId }),
     };
 
     await this.AccountHasResourceUseCase.execute(data);

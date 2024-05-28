@@ -12,7 +12,7 @@ export class Product extends Base {
   @IsString()
   name: string = null;
 
-  @ManyToMany(() => Plan, (plan) => plan.products)
+  @ManyToMany(() => Plan, (plan) => plan.products, { onDelete: 'CASCADE' })
   plans: Array<Plan> = null;
 
   @OneToMany(() => Resource, (resouce) => resouce.product)
