@@ -1,12 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
-import {
-  PermissionsController,
-  ValidatorController,
-} from './permissions.controller';
+import { PermissionsController, ValidatorController } from './permissions.controller';
 import { PermissionsProvider } from './permissions.provider';
 import { Permission } from '@permissions-package/domain/permission.entity';
-import { GroupUser } from '@permissions-package/domain/groupUser.entity';
 import { Group } from '@permissions-package/domain/group.entity';
 import { Resource } from '@permissions-package/domain/resouce.entity';
 import { Product } from '@permissions-package/domain/product.entity';
@@ -25,9 +21,7 @@ describe('PermissionsController', () => {
       providers: [...PermissionsProvider],
     }).compile();
 
-    permissionsController = module.get<PermissionsController>(
-      PermissionsController,
-    );
+    permissionsController = module.get<PermissionsController>(PermissionsController);
     validatorController = module.get<ValidatorController>(ValidatorController);
     database = module.get<DataSource>('Database');
     for (const entity of database.entityMetadatas) {
@@ -44,9 +38,7 @@ describe('PermissionsController', () => {
   });
 
   it('should get permissions', async () => {
-    const account = await database.manager.save<Account>(
-      await Account.create<Account>({}, true),
-    );
+    const account = await database.manager.save<Account>(await Account.create<Account>({}, true));
 
     const group = await database.manager.save<Group>(
       await Group.create<Group>(
@@ -63,16 +55,7 @@ describe('PermissionsController', () => {
         {
           email: 'email',
           pass: 'pass',
-        },
-        true,
-      ),
-    );
-
-    await database.manager.save<GroupUser>(
-      await GroupUser.create<GroupUser>(
-        {
-          group_id: group.id,
-          user_id: user.id,
+          groups: [group],
         },
         true,
       ),
@@ -101,10 +84,7 @@ describe('PermissionsController', () => {
       ),
     );
 
-    const groups = await permissionsController.getPermissions(
-      { user },
-      account.id,
-    );
+    const groups = await permissionsController.getPermissions({ user }, account.id);
     expect(groups[0]).toBeInstanceOf(Group);
     expect(groups[0].permissions).toBeInstanceOf(Array);
     expect(groups[0].permissions[0]).toBeInstanceOf(Permission);

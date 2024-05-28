@@ -2,6 +2,8 @@ import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -9,6 +11,7 @@ import {
 import { Base } from './base';
 import { Permission } from './permission.entity';
 import { Account } from './account.entity';
+import { User } from './user.entity';
 
 @Entity()
 export class Group extends Base {
@@ -26,4 +29,13 @@ export class Group extends Base {
 
   @OneToMany(() => Permission, (permission) => permission.group)
   permissions: Array<Permission> = null;
+
+  @ManyToMany(() => User, (user) => user.groups, { onDelete: 'CASCADE' })
+  @JoinTable({
+    name: 'group_users',
+    synchronize: true,
+    joinColumns: [{ name: 'group_id', referencedColumnName: 'id' }],
+    inverseJoinColumns: [{ name: 'user_id', referencedColumnName: 'id' }],
+  })
+  users: Array<User> = null;
 }

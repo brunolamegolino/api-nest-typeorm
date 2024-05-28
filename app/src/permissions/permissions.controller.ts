@@ -1,16 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-  Controller,
-  Get,
-  Inject,
-  Param,
-  Request,
-  UseInterceptors,
-  All,
-  UseGuards,
-  Post,
-  Body,
-} from '@nestjs/common';
+import { Controller, Get, Inject, Param, Request, UseInterceptors, All, UseGuards, Post, Body } from '@nestjs/common';
 import { ControllerInteceptor } from './controller.interceptor';
 import { Group } from '@permissions-package/domain/group.entity';
 import { GetPermissionsUsecase } from '@permissions-package/application/get-permissions.use-case';
@@ -49,29 +38,19 @@ export class AuthController {
 @Controller('permissions')
 export class PermissionsController {
   constructor(
-    @Inject('GetPermissionsUsecase')
-    readonly GetPermissionsUsecase: GetPermissionsUsecase,
-    @Inject('HasPermissionUseCase')
-    readonly HasPermissionUseCase: HasPermissionUseCase,
+    @Inject('GetPermissionsUsecase') readonly GetPermissionsUsecase: GetPermissionsUsecase,
+    @Inject('HasPermissionUseCase') readonly HasPermissionUseCase: HasPermissionUseCase,
     @Inject('GetGroupsUsecase') readonly GetGroupsUsecase: GetGroupsUsecase,
-    @Inject('GetResourceUseCase')
-    readonly GetResourceUseCase: GetResourceUseCase,
+    @Inject('GetResourceUseCase') readonly GetResourceUseCase: GetResourceUseCase,
   ) {}
 
   @Get(':accountId')
-  public async getPermissions(
-    @Request() { user }: any,
-    @Param('accountId') accountId: string,
-  ): Promise<Array<Group>> {
+  public async getPermissions(@Request() { user }: any, @Param('accountId') accountId: string): Promise<Array<Group>> {
     const data: any = {
       account: await Account.create<Partial<Account>>({ id: accountId }),
       user: user,
-      resource: await Resource.create<Partial<Resource>>({
-        name: 'permissions',
-      }),
-      permission: await Permission.create<Partial<Permission>>({
-        action: 'read',
-      }),
+      resource: await Resource.create<Partial<Resource>>({ name: 'permissions' }),
+      permission: await Permission.create<Partial<Permission>>({ action: 'read' }),
     };
 
     data.groups = await this.GetGroupsUsecase.execute(data); // encontrar grupos referente a conta: cliente_id
@@ -101,10 +80,7 @@ export class ValidatorController {
   ) {}
 
   @All('*/:id')
-  public async validator(
-    @Request() request: any,
-    @Param('id') permissionElementId: number,
-  ) {
+  public async validator(@Request() request: any, @Param('id') permissionElementId: number) {
     const data: any = {
       user_id: 1,
       account_id: request.headers['account-id'],
