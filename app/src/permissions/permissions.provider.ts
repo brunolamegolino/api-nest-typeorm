@@ -18,13 +18,14 @@ const useCaseProviderGenerator = (): Array<Provider> => {
 export const DatabaseProvider: Provider = {
   provide: 'Database',
   useFactory: async () => {
+    const databaseName = process.env.DB_NAME || 'permissions';
     const dataSource = new DataSource({
       type: 'postgres',
       host: process.env.DB_HOST || 'postgres',
       port: 5432,
       username: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASS || 'postgres',
-      database: process.env.DB_NAME || 'permissions',
+      database: process.env.NODE_ENV === 'test' ? databaseName + '_test' : databaseName,
       entities: [__dirname + '/../**/*.entity{.ts,.js}'],
       synchronize: true,
       logging: ['error'],
@@ -34,7 +35,4 @@ export const DatabaseProvider: Provider = {
   },
 };
 
-export const PermissionsProvider: Array<Provider> = [
-  DatabaseProvider,
-  ...useCaseProviderGenerator(),
-];
+export const PermissionsProvider: Array<Provider> = [DatabaseProvider, ...useCaseProviderGenerator()];

@@ -15,8 +15,9 @@ export class RedirectUseCase {
       data: JSON.stringify(body),
     };
 
-    return config;
-    // const response = await axios.request(config);
-    // return response.data;
+    if (process.env.NODE_ENV === 'test') return config;
+
+    const response = await axios.request(config);
+    return response.data;
   }
 }
