@@ -1,5 +1,5 @@
 import { Permission } from '@permissions-package/domain/permission.entity';
-import { DataSource, Repository, In } from 'typeorm';
+import { DataSource, Repository, In, Equal } from 'typeorm';
 import { DtoHasPermission } from './has-permission.dto';
 import { UnauthorizedException } from '@nestjs/common';
 import { Group } from '@permissions-package/domain/group.entity';
@@ -12,24 +12,23 @@ export class HasPermissionUseCase {
   }
 
   public async execute(data: DtoHasPermission): Promise<true> {
-    // const dto = await DtoHasPermission.create<DtoHasPermission>(data);
-    const dto: any = data;
+    const dto = await DtoHasPermission.create<DtoHasPermission>(data);
 
     let resourceFilter = '';
-    if (dto.permission_element_id)
+    if (dto.permission.elements)
       resourceFilter =
         '(elements_filter IS NULL OR ' +
-        `(elements_filter = 'include' AND elements like '%,${dto.permission_element_id},%' ) OR ` +
-        `(elements_filter = 'exclude' AND elements not like '%,${dto.permission_element_id},%' )) `;
+        `(elements_filter = 'include' AND elements like '%,${dto.permission.elements},%' ) OR ` +
+        `(elements_filter = 'exclude' AND elements not like '%,${dto.permission.elements},%' )) `;
     const permissions = await this.permissionRepository
       .createQueryBuilder()
       .where(resourceFilter)
       .setFindOptions({
         where: {
-          account_id: dto.account_id,
+          account: Equal(dto.account.id),
           group: In(dto.groups.map((g: Group) => g.id)),
-          action: dto.action,
-          recurso_id: dto.recurso_id,
+          action: Equal(dto.permission.action),
+          resource: Equal(dto.resource.id),
         },
       })
       .getMany();

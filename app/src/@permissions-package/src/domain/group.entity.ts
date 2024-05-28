@@ -1,14 +1,25 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Base } from './base';
 import { Permission } from './permission.entity';
+import { Account } from './account.entity';
 
 @Entity()
 export class Group extends Base {
-  @PrimaryGeneratedColumn()
-  id: number = null;
+  @PrimaryGeneratedColumn('uuid')
+  id: string = null;
 
-  @Column()
-  account_id: string = null;
+  @ManyToOne(() => Account, {
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'account_id', referencedColumnName: 'id' })
+  account: Account = null;
 
   @Column()
   name: string = null;

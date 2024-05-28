@@ -10,8 +10,9 @@ export class GetResourceUseCase {
   }
 
   public async execute(data: any): Promise<Resource> {
+    const dto: { resource: Resource } = data;
     const recurso = await this.resourceRepository.findOneBy({
-      name: Equal(data.resource_name),
+      name: Equal(dto.resource.name),
     });
 
     if (!recurso) {

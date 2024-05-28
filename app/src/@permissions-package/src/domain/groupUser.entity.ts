@@ -3,12 +3,12 @@ import { Base } from './base';
 
 @Entity()
 export class GroupUser extends Base {
-  @PrimaryGeneratedColumn()
-  id: number = null;
+  @PrimaryGeneratedColumn('uuid')
+  id: string = null;
 
   @Column()
   group_id: string = null;
 
   @Column()
-  user_id: number = null;
+  user_id: string = null;
 }

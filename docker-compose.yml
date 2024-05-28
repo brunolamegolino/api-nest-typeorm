@@ -1,9 +1,9 @@
 version: "3"
 
 services:
-  permissions:
+  api-base:
     image: node:20-alpine
-    container_name: permissions
+    container_name: api-base
     working_dir: /app
     volumes:
       - ./app:/app

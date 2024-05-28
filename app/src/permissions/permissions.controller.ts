@@ -10,7 +10,6 @@ import {
   UseGuards,
   Post,
   Body,
-  RawBody,
 } from '@nestjs/common';
 import { ControllerInteceptor } from './controller.interceptor';
 import { Group } from '@permissions-package/domain/group.entity';
@@ -23,6 +22,9 @@ import { AccountHasResourceUseCase } from '@permissions-package/application/acco
 import { AuthGuard } from './auth-guard';
 import { ApiBody, ApiHeader } from '@nestjs/swagger';
 import { DataSource } from 'typeorm';
+import { Account } from '@permissions-package/domain/account.entity';
+import { Permission } from '@permissions-package/domain/permission.entity';
+import { Resource } from '@permissions-package/domain/resouce.entity';
 
 @UseInterceptors(ControllerInteceptor)
 @Controller('auth')
@@ -52,23 +54,30 @@ export class PermissionsController {
     @Inject('HasPermissionUseCase')
     readonly HasPermissionUseCase: HasPermissionUseCase,
     @Inject('GetGroupsUsecase') readonly GetGroupsUsecase: GetGroupsUsecase,
+    @Inject('GetResourceUseCase')
+    readonly GetResourceUseCase: GetResourceUseCase,
   ) {}
 
-  @Get('get-permissions/:accountId')
+  @Get(':accountId')
   public async getPermissions(
+    @Request() { user }: any,
     @Param('accountId') accountId: string,
   ): Promise<Array<Group>> {
-    // ==> pegar todas as permissões de uma conta
-    // usuario logado
-    // usuario com ultimo token
-    // => usuario logado
-    const data: any = { account_id: accountId };
-    data.user_id = 1;
+    const data: any = {
+      account: await Account.create<Partial<Account>>({ id: accountId }),
+      user: user,
+      resource: await Resource.create<Partial<Resource>>({
+        name: 'permissions',
+      }),
+      permission: await Permission.create<Partial<Permission>>({
+        action: 'read',
+      }),
+    };
 
     data.groups = await this.GetGroupsUsecase.execute(data); // encontrar grupos referente a conta: cliente_id
 
-    data.action = 'read';
-    data.recurso_id = '1';
+    data.resource = await this.GetResourceUseCase.execute(data);
+
     await this.HasPermissionUseCase.execute(data); // em algum dos grupos tem permissoes de ler permissoes
 
     return data.groups;

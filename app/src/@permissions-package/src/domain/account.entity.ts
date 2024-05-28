@@ -4,8 +4,8 @@ import { Plan } from './plan.entity';
 
 @Entity()
 export class Account extends Base {
-  @PrimaryGeneratedColumn()
-  id: number = null;
+  @PrimaryGeneratedColumn('uuid')
+  id: string = null;
 
   @OneToMany(() => Plan, (plan) => plan.account)
   plans: Array<Plan> = null;

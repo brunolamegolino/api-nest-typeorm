@@ -29,18 +29,16 @@ export class AuthGuard implements CanActivate {
     //   return true;
     // }
 
-    const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request);
-    if (!token) {
-      throw new UnauthorizedException();
-    }
     try {
+      const request = context.switchToHttp().getRequest();
+      const token = this.extractTokenFromHeader(request);
       const payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.JWT_SECRET,
       });
-      // 💡 We're assigning the payload to the request object here
-      // so that we can access it in our route handlers
-      request['user'] = payload;
+
+      request.user = payload.user;
+      request.account_id = request?.account_id || '';
+      request.role = request?.role || '';
     } catch {
       throw new UnauthorizedException();
     }
@@ -48,8 +46,8 @@ export class AuthGuard implements CanActivate {
   }
 
   private extractTokenFromHeader(request: Request): any {
-    const token = request.headers['account-id']?.split(' ') ?? [];
-    return token === 'Bearer' ? token : undefined;
+    const token = request.headers['acess_token']?.split(' ') ?? [];
+    return token[0] === 'Bearer' ? token[1] : undefined;
   }
 
   async signIn(
@@ -61,6 +59,7 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
 
+    delete user.pass;
     return {
       user: user,
       access_token: await this.jwtService.signAsync(

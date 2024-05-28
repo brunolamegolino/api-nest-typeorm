@@ -7,17 +7,22 @@ import {
 } from 'typeorm';
 import { Base } from './base';
 import { Group } from './group.entity';
+import { Account } from './account.entity';
+import { Resource } from './resouce.entity';
 
 @Entity()
 export class Permission extends Base {
-  @PrimaryGeneratedColumn()
-  id: number = null;
+  @PrimaryGeneratedColumn('uuid')
+  id: string = null;
 
-  @Column()
-  account_id: string = null;
+  @ManyToOne(() => Account, {
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'account_id', referencedColumnName: 'id' })
+  account: Account = null;
 
   @ManyToOne(() => Group, {
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'group_id', referencedColumnName: 'id' })
   group: Group = null;
@@ -25,8 +30,11 @@ export class Permission extends Base {
   @Column()
   action: string = null;
 
-  @Column()
-  recurso_id: string = null;
+  @ManyToOne(() => Resource, {
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'resource_id', referencedColumnName: 'id' })
+  resource: Resource = null;
 
   @Column({ nullable: true })
   elements_filter: string = null;
