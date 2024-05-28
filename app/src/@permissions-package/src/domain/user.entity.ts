@@ -1,8 +1,9 @@
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Base } from './base';
 import { Group } from './group.entity';
 
 @Entity()
+@Unique(['email'])
 export class User extends Base {
   @PrimaryGeneratedColumn('uuid')
   id: string = null;

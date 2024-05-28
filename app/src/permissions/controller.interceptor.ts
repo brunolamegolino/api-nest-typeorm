@@ -1,33 +1,27 @@
-import {
-  CallHandler,
-  ExecutionContext,
-  HttpException,
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  NestInterceptor,
-} from '@nestjs/common';
+import { CallHandler, ExecutionContext, HttpException, Inject, Injectable, InternalServerErrorException, NestInterceptor } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
 @Injectable()
 export class ControllerInteceptor implements NestInterceptor {
   constructor(@Inject('Database') readonly database: DataSource) {}
 
-  async intercept(
-    context: ExecutionContext,
-    next: CallHandler<any>,
-  ): Promise<any> {
+  async intercept(context: ExecutionContext, next: CallHandler<any>): Promise<any> {
     const session = this.database.createQueryRunner();
-    session.connect();
+    await session.connect();
     try {
-      session.startTransaction();
-      const result = next.handle();
-      session.commitTransaction();
+      await session.startTransaction();
+      const result = await new Promise((resolve, reject) => {
+        next.handle().subscribe(
+          (data) => resolve(data),
+          (error) => reject(error),
+        );
+      });
+      await session.commitTransaction();
 
       return result;
     } catch (error: any) {
-      session.rollbackTransaction();
-      session.release();
+      await session.rollbackTransaction();
+      await session.release();
       if (error instanceof HttpException && error.getStatus() < 500) {
         throw error;
       }

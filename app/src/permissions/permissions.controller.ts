@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Controller, Get, Inject, Param, Request, UseInterceptors, All, UseGuards, Post, Body, BadRequestException } from '@nestjs/common';
 import { ControllerInteceptor } from './controller.interceptor';
 import { Group } from '@permissions-package/domain/group.entity';
@@ -14,22 +13,26 @@ import { DataSource } from 'typeorm';
 import { Account } from '@permissions-package/domain/account.entity';
 import { Permission } from '@permissions-package/domain/permission.entity';
 import { Resource } from '@permissions-package/domain/resouce.entity';
-import { permission } from 'process';
 
 @UseInterceptors(ControllerInteceptor)
 @Controller('auth')
 export class AuthController {
-  constructor(@Inject('Database') readonly database: DataSource) {}
+  authGuard: AuthGuard;
 
-  @ApiBody({
-    schema: {
-      properties: { email: { type: 'string' }, pass: { type: 'string' } },
-    },
-  })
+  constructor(@Inject('Database') readonly database: DataSource) {
+    this.authGuard = new AuthGuard(this.database);
+  }
+
+  @ApiBody({ schema: { properties: { email: { type: 'string' }, pass: { type: 'string' } } } })
   @Post()
   async signIn(@Body() { email, pass }: any): Promise<any> {
-    const authGuard = new AuthGuard(this.database);
-    return authGuard.signIn(email, pass);
+    return await this.authGuard.signIn(email, pass);
+  }
+
+  @ApiBody({ schema: { properties: { email: { type: 'string' }, pass: { type: 'string' } } } })
+  @Post('sign-up')
+  async signUp(@Body() { email, pass }: any): Promise<any> {
+    return await this.authGuard.signUp(email, pass);
   }
 }
 

@@ -1,13 +1,8 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@permissions-package/domain/user.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Equal, Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -50,22 +45,32 @@ export class AuthGuard implements CanActivate {
     return token[0] === 'Bearer' ? token[1] : undefined;
   }
 
-  async signIn(
-    email: string,
-    pass: string,
-  ): Promise<{ user: User; access_token: string }> {
-    const user = await this.userRepository.findOneBy({ email, pass });
-    if (!user) {
+  async signIn(email: string, pass: string): Promise<{ user: User; access_token: string }> {
+    const user = await this.userRepository.findOneBy({
+      email: Equal(email),
+    });
+
+    if (!user || !(await bcrypt.compare(pass, user.pass))) {
       throw new UnauthorizedException();
     }
 
     delete user.pass;
     return {
       user: user,
-      access_token: await this.jwtService.signAsync(
-        { user },
-        { expiresIn: '5m' },
-      ),
+      access_token: await this.jwtService.signAsync({ user }, { expiresIn: '5m' }),
     };
+  }
+
+  async signUp(email: string, pass: string): Promise<{ user: User; access_token: string }> {
+    const user = await User.create<User>({ email: email, pass: await bcrypt.hashSync(pass, 10) });
+
+    try {
+      await this.userRepository.save(user);
+    } catch (error: any) {
+      if (error?.detail) throw new BadRequestException(error.detail);
+      throw error;
+    }
+
+    return await this.signIn(email, pass);
   }
 }
