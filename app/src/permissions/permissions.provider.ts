@@ -1,6 +1,7 @@
 import { Provider } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import useCases from '@permissions-package/application';
+import { createDatabase } from 'typeorm-extension';
 
 const useCaseProviderGenerator = (): Array<Provider> => {
   const useCasesProvider = [];
@@ -18,18 +19,24 @@ const useCaseProviderGenerator = (): Array<Provider> => {
 export const DatabaseProvider: Provider = {
   provide: 'Database',
   useFactory: async () => {
-    const databaseName = process.env.DB_NAME || 'permissions';
-    const dataSource = new DataSource({
+    let databaseName = process.env.DB_NAME || 'permissions';
+    if (process.env.NODE_ENV === 'test') databaseName = databaseName + '_test';
+
+    const config: DataSourceOptions = {
       type: 'postgres',
       host: process.env.DB_HOST || 'postgres',
       port: 5432,
       username: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASS || 'postgres',
-      database: process.env.NODE_ENV === 'test' ? databaseName + '_test' : databaseName,
+      database: databaseName,
       entities: [__dirname + '/../**/*.entity{.ts,.js}'],
       synchronize: true,
       logging: ['error'],
-    });
+    };
+
+    await createDatabase({ options: config, ifNotExist: true });
+
+    const dataSource = new DataSource(config);
 
     return await dataSource.initialize();
   },

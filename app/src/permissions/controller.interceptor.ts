@@ -10,12 +10,13 @@ export class ControllerInteceptor implements NestInterceptor {
     await session.connect();
     try {
       await session.startTransaction();
-      const result = await new Promise((resolve, reject) => {
-        next.handle().subscribe(
-          (data) => resolve(data),
-          (error) => reject(error),
-        );
-      });
+      const result = next.handle();
+      // const result = await new Promise((resolve, reject) => {
+      //   next.handle().subscribe(
+      //     (data) => resolve(data),
+      //     (error) => reject(error),
+      //   );
+      // });
       await session.commitTransaction();
 
       return result;
