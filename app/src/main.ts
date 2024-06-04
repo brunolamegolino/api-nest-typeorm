@@ -15,8 +15,9 @@ async function bootstrap() {
     // .addTag('permissions')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('swagger', app, document);
 
+  app.enableCors({ origin: '*' });
   await app.listen(3000);
 }
 bootstrap();

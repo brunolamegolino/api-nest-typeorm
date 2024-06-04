@@ -34,7 +34,7 @@ export const DatabaseProvider: Provider = {
       logging: ['error'],
     };
 
-    await createDatabase({ options: config, ifNotExist: true });
+    // await createDatabase({ options: config, ifNotExist: true });
 
     const dataSource = new DataSource(config);
 

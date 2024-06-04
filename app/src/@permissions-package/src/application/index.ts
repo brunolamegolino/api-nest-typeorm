@@ -1,4 +1,5 @@
 import { AccountHasResourceUseCase } from './account-has-resource.use-case';
+import { GetAccountUseCase } from './get-account.use-case';
 import { GetGroupsUsecase } from './get-groups.use-case';
 import { GetPermissionsUsecase } from './get-permissions.use-case';
 import { GetResourceUseCase } from './get-resource.use-case';
@@ -14,4 +15,5 @@ export default {
   RedirectUseCase,
   GetResourceUseCase,
   AccountHasResourceUseCase,
+  GetAccountUseCase,
 };

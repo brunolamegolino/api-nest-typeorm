@@ -10,13 +10,12 @@ export class RedirectUseCase {
     const config = {
       method: method,
       baseURL: baseURL,
-      url: url.replace(/\/gateway*/, ''),
-      headers: new AxiosHeaders(JSON.stringify(headers)),
+      url: url,
+      headers: new AxiosHeaders(headers),
       data: JSON.stringify(body),
     };
 
     if (process.env.NODE_ENV === 'test') return config;
-
     const response = await axios.request(config);
     return response.data;
   }

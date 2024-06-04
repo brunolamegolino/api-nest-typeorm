@@ -59,7 +59,10 @@ describe('PermissionsController', () => {
   });
 
   it('validate permission before to redirect', async () => {
-    const redirect = await validatorController.validator({ user, method: 'GET', url: `/empresa/1`, headers: { 'Content-Type': 'application/json', 'account-id': account.id } }, undefined, undefined);
-    expect(true).toBe(true);
+    const redirect = await validatorController.validator({ user, method: 'GET', url: `/empresa/1`, headers: { 'Content-Type': 'application/json', account_id: account.id } }, undefined);
+
+    expect(redirect.method).toBeDefined();
+    expect(redirect.baseURL).toBeDefined();
+    expect(redirect.url).toBeDefined();
   });
 });

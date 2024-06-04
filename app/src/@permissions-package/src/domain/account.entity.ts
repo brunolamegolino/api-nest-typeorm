@@ -1,4 +1,4 @@
-import { Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Base } from './base';
 import { Plan } from './plan.entity';
 
@@ -9,4 +9,7 @@ export class Account extends Base {
 
   @OneToMany(() => Plan, (plan) => plan.account)
   plans: Array<Plan> = null;
+
+  @Column({ nullable: true })
+  legacy_id: string = null;
 }

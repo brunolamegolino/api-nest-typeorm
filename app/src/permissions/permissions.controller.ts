@@ -13,6 +13,7 @@ import { DataSource } from 'typeorm';
 import { Account } from '@permissions-package/domain/account.entity';
 import { Permission } from '@permissions-package/domain/permission.entity';
 import { Resource } from '@permissions-package/domain/resouce.entity';
+import { GetAccountUseCase } from '@permissions-package/application/get-account.use-case';
 
 @UseInterceptors(ControllerInteceptor)
 @Controller('auth')
@@ -67,20 +68,19 @@ export class PermissionsController {
   }
 }
 
-@ApiHeader({ name: 'account-id' })
-@UseGuards(AuthGuard)
+@ApiHeader({ name: 'account_id' })
+@ApiHeader({ name: 'access_token' })
+// @UseGuards(AuthGuard)
 @UseInterceptors(ControllerInteceptor)
 @Controller('')
 export class ValidatorController {
   constructor(
     @Inject('RedirectUseCase') readonly RedirectUseCase: RedirectUseCase,
-    @Inject('GetResourceUseCase')
-    readonly GetResourceUseCase: GetResourceUseCase,
-    @Inject('AccountHasResourceUseCase')
-    readonly AccountHasResourceUseCase: AccountHasResourceUseCase,
+    @Inject('GetResourceUseCase') readonly GetResourceUseCase: GetResourceUseCase,
+    @Inject('AccountHasResourceUseCase') readonly AccountHasResourceUseCase: AccountHasResourceUseCase,
     @Inject('GetGroupsUsecase') readonly GetGroupsUsecase: GetGroupsUsecase,
-    @Inject('HasPermissionUseCase')
-    readonly HasPermissionUseCase: HasPermissionUseCase,
+    @Inject('HasPermissionUseCase') readonly HasPermissionUseCase: HasPermissionUseCase,
+    @Inject('GetAccountUseCase') readonly GetAccountUseCase: GetAccountUseCase,
   ) {}
 
   private getActionFromMethod(method: string): string {
@@ -91,26 +91,36 @@ export class ValidatorController {
     throw new BadRequestException();
   }
 
-  @All('*/:elementId')
-  public async validator(@Request() request: any, @Param('elementId') elementId: string, @Body() body: any): Promise<any> {
-    const data: any = {
-      user: request.user,
-      account: await Account.create<Partial<Account>>({ id: request.headers['account-id'] }),
-      resource: await Resource.create<Partial<Resource>>({ name: request.url.split('/')[1] }),
-      permission: await Permission.create<Partial<Permission>>({ action: this.getActionFromMethod(request.method), elements: elementId }),
-    };
+  @All('*')
+  // @All(':resource/:elementId')
+  public async validator(@Request() request: any, @Body() body: any): Promise<any> {
+    const paths = request.url.split('/');
+    // const data: any = {};
+    // data.user = request.user;
+    // data.account = await this.GetAccountUseCase.execute({ account: { id: request.headers.account_id } });
+    // data.resource = await Resource.create<Partial<Resource>>({ name: paths[1] });
+    // data.permission = await Permission.create<Partial<Permission>>({
+    //   action: this.getActionFromMethod(request.method), // elements: elementeId,
+    // });
 
-    await this.AccountHasResourceUseCase.execute(data);
+    // await this.AccountHasResourceUseCase.execute(data);
 
-    data.resource = await this.GetResourceUseCase.execute(data);
+    // data.resource = await this.GetResourceUseCase.execute(data);
 
-    data.groups = await this.GetGroupsUsecase.execute(data);
+    // data.groups = await this.GetGroupsUsecase.execute(data);
 
-    await this.HasPermissionUseCase.execute(data);
+    // await this.HasPermissionUseCase.execute(data);
 
     return await this.RedirectUseCase.execute({
       ...request,
-      baseURL: data.resource.domain,
+      headers: {
+        ...request.headers,
+        // user: JSON.stringify(data.user),
+        // account: JSON.stringify(data.account),
+        // permissions: JSON.stringify(data.groups),
+      },
+      // baseURL: data.resource.domain,
+      baseURL: 'http://172.23.0.1:8080/api/',
     });
   }
 }
