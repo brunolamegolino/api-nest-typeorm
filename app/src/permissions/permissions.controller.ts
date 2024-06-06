@@ -20,14 +20,17 @@ import { GetAccountUseCase } from '@permissions-package/application/get-account.
 export class AuthController {
   authGuard: AuthGuard;
 
-  constructor(@Inject('Database') readonly database: DataSource) {
+  constructor(
+    @Inject('Database') readonly database: DataSource,
+    @Inject('GetAccountUseCase') readonly GetAccountUseCase: GetAccountUseCase,
+  ) {
     this.authGuard = new AuthGuard(this.database);
   }
 
   @ApiBody({ schema: { properties: { email: { type: 'string' }, pass: { type: 'string' } } } })
   @Post()
   async signIn(@Body() { email, pass }: any): Promise<any> {
-    return await this.authGuard.signIn(email, pass);
+    return { ...(await this.authGuard.signIn(email, pass)), account: await this.GetAccountUseCase.execute({ account: { id: 'ef28251f-b0a8-425c-9636-6a7e1f08bee9' } }) };
   }
 
   @ApiBody({ schema: { properties: { email: { type: 'string' }, pass: { type: 'string' } } } })
@@ -70,7 +73,7 @@ export class PermissionsController {
 
 @ApiHeader({ name: 'account_id' })
 @ApiHeader({ name: 'access_token' })
-// @UseGuards(AuthGuard)
+@UseGuards(AuthGuard)
 @UseInterceptors(ControllerInteceptor)
 @Controller('')
 export class ValidatorController {
@@ -92,24 +95,23 @@ export class ValidatorController {
   }
 
   @All('*')
-  // @All(':resource/:elementId')
   public async validator(@Request() request: any, @Body() body: any): Promise<any> {
     const paths = request.url.split('/');
-    // const data: any = {};
-    // data.user = request.user;
-    // data.account = await this.GetAccountUseCase.execute({ account: { id: request.headers.account_id } });
-    // data.resource = await Resource.create<Partial<Resource>>({ name: paths[1] });
-    // data.permission = await Permission.create<Partial<Permission>>({
-    //   action: this.getActionFromMethod(request.method), // elements: elementeId,
-    // });
+    const data: any = {};
+    data.user = request.user;
+    data.account = await this.GetAccountUseCase.execute({ account: { id: JSON.parse(request.headers.account).id } });
+    data.resource = await Resource.create<Partial<Resource>>({ name: paths[1] });
+    data.permission = await Permission.create<Partial<Permission>>({
+      action: this.getActionFromMethod(request.method), // elements: elementeId,
+    });
 
-    // await this.AccountHasResourceUseCase.execute(data);
+    await this.AccountHasResourceUseCase.execute(data);
 
-    // data.resource = await this.GetResourceUseCase.execute(data);
+    data.resource = await this.GetResourceUseCase.execute(data);
 
-    // data.groups = await this.GetGroupsUsecase.execute(data);
+    data.groups = await this.GetGroupsUsecase.execute(data);
 
-    // await this.HasPermissionUseCase.execute(data);
+    await this.HasPermissionUseCase.execute(data);
 
     return await this.RedirectUseCase.execute({
       ...request,
@@ -119,8 +121,7 @@ export class ValidatorController {
         // account: JSON.stringify(data.account),
         // permissions: JSON.stringify(data.groups),
       },
-      // baseURL: data.resource.domain,
-      baseURL: 'http://172.23.0.1:8080/api/',
+      baseURL: data.resource.domain,
     });
   }
 }

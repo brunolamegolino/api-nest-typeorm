@@ -31,7 +31,8 @@ export const DatabaseProvider: Provider = {
       database: databaseName,
       entities: [__dirname + '/../**/*.entity{.ts,.js}'],
       synchronize: true,
-      logging: ['error'],
+      // logging: ['error'],
+      logging: false,
     };
 
     // await createDatabase({ options: config, ifNotExist: true });

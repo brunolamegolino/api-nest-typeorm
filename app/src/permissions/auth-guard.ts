@@ -1,8 +1,9 @@
-import { BadRequestException, CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@permissions-package/domain/user.entity';
 import { DataSource, Equal, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { Group } from '@permissions-package/domain/group.entity';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -30,10 +31,10 @@ export class AuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token);
 
       request.user = payload.user;
-      request.account_id = request?.account_id || '';
+      request.account_id = request.headers?.account_id || '';
       request.role = request?.role || '';
     } catch {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Credenciais inválidas!');
     }
     return true;
   }
@@ -43,7 +44,7 @@ export class AuthGuard implements CanActivate {
     return token[0] === 'Bearer' ? token[1] : undefined;
   }
 
-  async signIn(email: string, pass: string): Promise<{ user: User; access_token: string }> {
+  async signIn(email: string, pass: string): Promise<{ user: User; access_token: string; permissions: Array<Group> }> {
     const user = await this.userRepository.findOne({
       where: { email: Equal(email) },
       relations: ['groups', 'groups.account'],
@@ -57,6 +58,7 @@ export class AuthGuard implements CanActivate {
     return {
       user: user,
       access_token: await this.jwtService.signAsync({ user }, { expiresIn: '12h' }),
+      permissions: user.groups,
     };
   }
 
