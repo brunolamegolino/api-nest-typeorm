@@ -12,13 +12,11 @@ export class GetPermissionsUsecase {
   public async execute(data: GetPermissionsDto): Promise<Array<Permission>> {
     const dto = await GetPermissionsDto.create<GetPermissionsDto>(data);
     const permissions = await this.permissionRepository.findBy({
-      account: Equal(dto.account_id),
+      account_user: { account: Equal(dto.account_id) },
     });
 
     if (permissions.length === 0) {
-      throw new UnauthorizedException(
-        'Sem permissão para o recurso informado!',
-      );
+      throw new UnauthorizedException('Sem permissão para o recurso informado!');
     }
 
     return permissions;

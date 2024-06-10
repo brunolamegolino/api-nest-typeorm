@@ -1,6 +1,6 @@
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Base } from './base';
-import { Group } from './group.entity';
+import { AccountUser } from './account-user.entity';
 
 @Entity()
 @Unique(['email'])
@@ -14,6 +14,6 @@ export class User extends Base {
   @Column()
   pass: string = null;
 
-  @ManyToMany(() => Group, (group) => group.users, { onDelete: 'CASCADE' })
-  groups: Array<Group> = null;
+  @OneToMany(() => AccountUser, (accountUser) => accountUser.user)
+  account_user: Array<AccountUser> = null;
 }

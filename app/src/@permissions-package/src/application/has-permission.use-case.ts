@@ -1,8 +1,7 @@
 import { Permission } from '@permissions-package/domain/permission.entity';
-import { DataSource, Repository, In, Equal } from 'typeorm';
+import { DataSource, Repository, Equal } from 'typeorm';
 import { DtoHasPermission } from './has-permission.dto';
 import { UnauthorizedException } from '@nestjs/common';
-import { Group } from '@permissions-package/domain/group.entity';
 
 export class HasPermissionUseCase {
   permissionRepository: Repository<Permission>;
@@ -11,7 +10,7 @@ export class HasPermissionUseCase {
     this.permissionRepository = this.database.getRepository(Permission.name);
   }
 
-  public async execute(data: DtoHasPermission): Promise<true> {
+  public async execute(data: any): Promise<true> {
     const dto = await DtoHasPermission.create<DtoHasPermission>(data);
 
     let resourceFilter = '';
@@ -25,10 +24,9 @@ export class HasPermissionUseCase {
       .where(resourceFilter)
       .setFindOptions({
         where: {
-          account: Equal(dto.account.id),
-          group: In(dto.groups.map((g: Group) => g.id)),
           action: Equal(dto.permission.action),
-          resource: Equal(dto.resource.id),
+          resource: dto.resource,
+          account_user: dto.account_user,
         },
       })
       .getMany();

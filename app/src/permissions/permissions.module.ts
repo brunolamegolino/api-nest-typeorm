@@ -1,9 +1,5 @@
 import { Module } from '@nestjs/common';
-import {
-  AuthController,
-  PermissionsController,
-  ValidatorController,
-} from './permissions.controller';
+import { AuthController, PermissionsController, ValidatorController } from './permissions.controller';
 import { DatabaseProvider, PermissionsProvider } from './permissions.provider';
 import { ConfigModule } from '@nestjs/config';
 
