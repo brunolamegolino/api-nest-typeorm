@@ -95,13 +95,9 @@ export class ValidatorController {
     const paths = request.url.split('/');
     const data: any = {};
     data.user = request.user;
-    // console.log(data.user);
-    // data.account = await this.GetAccountUseCase.execute({ account: { id: JSON.parse(request.headers.account).id } });
     data.resource = await Resource.create<Partial<Resource>>({ name: paths[1] });
     data.account_user = await this.GetAccountUserUseCase.execute({ accountUser: { id: request.account_user_id }, user: data.user });
-    data.permission = await Permission.create<Partial<Permission>>({
-      action: this.getActionFromMethod(request.method), // elements: elementeId,
-    });
+    data.permission = await Permission.create<Partial<Permission>>({ action: this.getActionFromMethod(request.method) });
     data.account = data.account_user.account;
 
     await this.AccountHasResourceUseCase.execute(data);
@@ -115,6 +111,7 @@ export class ValidatorController {
       ...request.headers,
       user: JSON.stringify(data.user),
       account: JSON.stringify(data.account),
+      permissions: JSON.stringify(data.account_user.permissions),
     };
     return await this.RedirectUseCase.execute(request);
   }

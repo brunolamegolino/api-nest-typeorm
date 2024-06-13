@@ -17,7 +17,7 @@ export class GetAccountUserUseCase {
         id: dto.accountUser.id,
         user: { id: Equal(dto.user.id) },
       },
-      relations: ['account'],
+      relations: ['account', 'permissions.resource'],
     });
 
     return account_user;

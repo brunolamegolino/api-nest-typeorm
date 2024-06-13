@@ -12,4 +12,7 @@ export class Account extends Base {
 
   @Column({ nullable: true })
   legacy_id: string = null;
+
+  @Column()
+  name: string = null;
 }

@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@permissions-package/domain/user.entity';
 import { DataSource, Equal, Repository } from 'typeorm';
@@ -16,37 +16,27 @@ export class AuthGuard implements CanActivate {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-    //   context.getHandler(),
-    //   context.getClass(),
-    // ]);
-    // if (isPublic) {
-    //   // 💡 See this condition
-    //   return true;
-    // }
+    const request = context.switchToHttp().getRequest();
+    const { access_token, account_user_id } = request.headers;
+    let payload: any = '';
 
     try {
-      const request = context.switchToHttp().getRequest();
-      const token = this.extractTokenFromHeader(request.headers);
-      const payload = await this.jwtService.verifyAsync(token);
-
-      request.user = payload.user;
-      request.account_user_id = request.headers?.account_user_id || '';
+      payload = await this.jwtService.verifyAsync(access_token);
     } catch {
       throw new UnauthorizedException('Credenciais inválidas!');
     }
+
+    if (!payload.user || !account_user_id) throw new BadRequestException('Credenciais inválidas!');
+
+    request.user = payload.user;
+    request.account_user_id = account_user_id;
     return true;
   }
 
-  private extractTokenFromHeader(headers: any): any {
-    const token = headers?.access_token.split(' ') ?? [];
-    return token[0] === 'Bearer' ? token[1] : undefined;
-  }
-
-  async signIn(email: string, pass: string): Promise<{ user: User; access_token: string; account_user: Array<AccountUser> }> {
+  async signIn(email: string, pass: string): Promise<{ user: User; access_token: string; account_users: Array<AccountUser> }> {
     const user = await this.userRepository.findOne({
       where: { email: Equal(email) },
-      relations: ['account_user.account'],
+      relations: ['account_user.account', 'account_user.permissions.resource'],
       order: { account_user: { account: { id: 'ASC' }, role: 'ASC' } },
     });
 
@@ -54,13 +44,13 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
 
-    const account_user = user.account_user;
+    const account_users = user.account_user;
     delete user.pass;
     delete user.account_user;
     return {
       user,
       access_token: await this.jwtService.signAsync({ user }, { expiresIn: '12h' }),
-      account_user,
+      account_users,
     };
   }
 
