@@ -48,27 +48,31 @@ export class PermissionsController {
     @Inject('GetPermissionsUsecase') readonly GetPermissionsUsecase: GetPermissionsUsecase,
     @Inject('HasPermissionUseCase') readonly HasPermissionUseCase: HasPermissionUseCase,
     @Inject('GetResourceUseCase') readonly GetResourceUseCase: GetResourceUseCase,
+    @Inject('GetAccountUserUseCase') readonly GetAccountUserUseCase: GetAccountUserUseCase,
+    @Inject('GetAccountUseCase') readonly GetAccountUseCase: GetAccountUseCase,
   ) {}
 
   @Get(':accountId')
-  public async getPermissions(@Request() { user }: any, @Param('accountId') accountId: string): Promise<Array<any>> {
-    const data: any = {
-      account: await Account.create<Partial<Account>>({ id: accountId }),
-      user: user,
-      resource: await Resource.create<Partial<Resource>>({ name: 'permissions' }),
-      permission: await Permission.create<Partial<Permission>>({ action: 'read' }),
-    };
+  public async getPermissions(@Request() { user, account_user_id }: any, @Param('accountId') accountId: string): Promise<Array<Permission>> {
+    const data: any = {};
+    data.user = user;
+    data.resource = await Resource.create<Partial<Resource>>({ name: 'permissions' });
+    data.permission = await Permission.create<Partial<Permission>>({ action: 'read' });
+    data.account_user = await this.GetAccountUserUseCase.execute({ accountUser: { id: account_user_id }, user: data.user });
+    data.account = await this.GetAccountUseCase.execute(data.account_user);
+
+    if (data.account.id != accountId) throw new BadRequestException('Conta informada não corresponde a conta exgida!');
 
     data.resource = await this.GetResourceUseCase.execute(data);
 
     await this.HasPermissionUseCase.execute(data); // em algum dos grupos tem permissoes de ler permissoes
 
-    return data.groups;
+    data.permissions = await this.GetPermissionsUsecase.execute(data);
+
+    return data.permissions;
   }
 }
 
-@ApiHeader({ name: 'account_id' })
-@ApiHeader({ name: 'access_token' })
 @UseGuards(AuthGuard)
 @UseInterceptors(ControllerInteceptor)
 @Controller('')

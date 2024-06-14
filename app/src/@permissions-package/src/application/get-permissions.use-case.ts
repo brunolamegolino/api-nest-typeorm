@@ -10,9 +10,13 @@ export class GetPermissionsUsecase {
   }
 
   public async execute(data: GetPermissionsDto): Promise<Array<Permission>> {
-    const dto = await GetPermissionsDto.create<GetPermissionsDto>(data);
+    // const dto = await GetPermissionsDto.create<GetPermissionsDto>(data);
+    const dto: any = data;
     const permissions = await this.permissionRepository.findBy({
-      account_user: { account: Equal(dto.account_id) },
+      account_user: {
+        id: Equal(dto.account_user.id),
+        account: Equal(dto.account.id),
+      },
     });
 
     if (permissions.length === 0) {

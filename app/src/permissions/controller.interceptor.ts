@@ -1,5 +1,5 @@
 import { BadRequestException, CallHandler, ExecutionContext, HttpException, Inject, Injectable, InternalServerErrorException, NestInterceptor } from '@nestjs/common';
-import { firstValueFrom, Observable, of, take } from 'rxjs';
+import { firstValueFrom, Observable, of } from 'rxjs';
 import { DataSource } from 'typeorm';
 
 @Injectable()
@@ -11,7 +11,7 @@ export class ControllerInteceptor implements NestInterceptor {
     await session.connect();
     try {
       await session.startTransaction();
-      const result = await firstValueFrom(next.handle().pipe(take(1)));
+      const result = await firstValueFrom(next.handle());
       await session.commitTransaction();
 
       if (result instanceof Observable) return result;

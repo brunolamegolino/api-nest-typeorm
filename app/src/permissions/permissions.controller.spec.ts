@@ -59,27 +59,22 @@ describe('PermissionsController', () => {
     expect(login.account_users).toBeInstanceOf(Array<AccountUser>);
   });
 
-  // it('should get permissions', async () => {
-  //   expect(permission).toBeInstanceOf(Permission);
+  it('should get permissions', async () => {
+    expect(permission).toBeInstanceOf(Permission);
 
-  //   const groups = await permissionsController.getPermissions({ user }, account.id);
-  //   expect(groups[0]).toBeInstanceOf(Group);
-  //   expect(groups[0].permissions).toBeInstanceOf(Array);
-  //   expect(groups[0].permissions[0]).toBeInstanceOf(Permission);
-  // });
+    const account_users = await permissionsController.getPermissions({ user }, account.id);
+    expect(account_users).toBeDefined();
+  });
 
   it('validate permission before to redirect', async () => {
     const { user, account_users } = await authController.signIn({ email: 'email', pass: 'pass' });
-    const redirect = await validatorController.validator(
-      {
-        user: user,
-        account_user_id: account_users[0].id,
-        method: 'GET',
-        url: `/empresa/1`,
-        headers: { 'Content-Type': 'application/json', account: JSON.stringify(account) },
-      },
-      undefined,
-    );
+    const redirect = await validatorController.validator({
+      user: user,
+      account_user_id: account_users[0].id,
+      method: 'GET',
+      url: `/empresa/1`,
+      headers: { 'Content-Type': 'application/json', account: JSON.stringify(account) },
+    });
 
     const account_received = JSON.parse(redirect.headers?.account);
     expect(account_received.id).toBeDefined();
