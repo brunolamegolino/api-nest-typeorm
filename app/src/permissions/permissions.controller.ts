@@ -97,8 +97,8 @@ export class ValidatorController {
     data.user = request.user;
     data.resource = await Resource.create<Partial<Resource>>({ name: paths[1] });
     data.account_user = await this.GetAccountUserUseCase.execute({ accountUser: { id: request.account_user_id }, user: data.user });
-    data.permission = await Permission.create<Partial<Permission>>({ action: this.getActionFromMethod(request.method) });
     data.account = data.account_user.account;
+    data.permission = await Permission.create<Partial<Permission>>({ action: this.getActionFromMethod(request.method) });
 
     await this.AccountHasResourceUseCase.execute(data);
 

@@ -6,9 +6,9 @@ import { Permission } from '@permissions-package/domain/permission.entity';
 import { Resource } from '@permissions-package/domain/resouce.entity';
 import { Product } from '@permissions-package/domain/product.entity';
 import { Account } from '@permissions-package/domain/account.entity';
-import { Plan } from '@permissions-package/domain/plan.entity';
 import { User } from '@permissions-package/domain/user.entity';
 import { AccountUser } from '@permissions-package/domain/account-user.entity';
+import { AccountProducts } from '@permissions-package/domain/account-products.entity';
 
 describe('PermissionsController', () => {
   let permissionsController: PermissionsController;
@@ -38,15 +38,16 @@ describe('PermissionsController', () => {
       // await queryRunner.release();
     }
 
-    account = await database.manager.save<Account>(await Account.create<Account>({}));
+    account = await database.manager.save<Account>(await Account.create<Account>({ name: 'Account for billing' }));
     user = await database.manager.save<User>(await User.create<User>({ email: 'email', pass: '$2b$10$cNvm1xMSP9JFiRms50XCceU77p.gEuBXGK.NzZ.41Q7LpJJex6z86' }));
     const account_user = await database.manager.save<AccountUser>(await AccountUser.create<AccountUser>({ account, user, role: 'admin' }));
-    resource = await database.manager.save<Resource>(await Resource.create<Resource>({ product: null, domain: '172.0.0.1:3000', name: 'permissions' }));
+    const product = await database.manager.save(await Product.create<Product>({ name: 'Permissions' }));
+    resource = await database.manager.save<Resource>(await Resource.create<Resource>({ product, domain: '172.0.0.1:3000', name: 'permissions' }));
     permission = await database.manager.save<Permission>(await Permission.create<Permission>({ account_user, action: 'read', resource: resource }));
 
-    const product = await database.manager.save(await Product.create<Product>({ name: 'Assinatura' }));
-    const resource2 = await database.manager.save<Resource>(await Resource.create<Resource>({ product, domain: '172.0.0.1:3000', name: 'empresa' }, true));
-    await database.manager.save(await Plan.create<Plan>({ account, products: [product] }));
+    const product2 = await database.manager.save(await Product.create<Product>({ name: 'Assinatura' }));
+    const resource2 = await database.manager.save<Resource>(await Resource.create<Resource>({ product: product2, domain: 'http://172.23.0.1:8080/api', name: 'empresa' }, true));
+    await database.manager.save(await AccountProducts.create<AccountProducts>({ account, product: product2, price: 10 }));
     await database.manager.save<Permission>(await Permission.create<Permission>({ account_user, action: 'read', resource: resource2 }, true));
   });
 
@@ -55,7 +56,7 @@ describe('PermissionsController', () => {
 
     expect(login.access_token).toBeDefined();
     expect(login.user.id).toBeDefined();
-    expect(login.account_user).toBeInstanceOf(Array<AccountUser>);
+    expect(login.account_users).toBeInstanceOf(Array<AccountUser>);
   });
 
   // it('should get permissions', async () => {
@@ -68,11 +69,11 @@ describe('PermissionsController', () => {
   // });
 
   it('validate permission before to redirect', async () => {
-    const { user, account_user } = await authController.signIn({ email: 'email', pass: 'pass' });
+    const { user, account_users } = await authController.signIn({ email: 'email', pass: 'pass' });
     const redirect = await validatorController.validator(
       {
         user: user,
-        account_user_id: account_user[0].id,
+        account_user_id: account_users[0].id,
         method: 'GET',
         url: `/empresa/1`,
         headers: { 'Content-Type': 'application/json', account: JSON.stringify(account) },
@@ -80,7 +81,9 @@ describe('PermissionsController', () => {
       undefined,
     );
 
-    expect(JSON.parse(redirect.headers?.account).plans).toBeDefined();
+    const account_received = JSON.parse(redirect.headers?.account);
+    expect(account_received.id).toBeDefined();
+
     expect(JSON.parse(redirect.headers?.user).email).toBeDefined();
 
     expect(redirect.method).toBeDefined();

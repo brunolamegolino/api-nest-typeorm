@@ -13,6 +13,7 @@ export class RedirectUseCase {
       url: url,
       headers: new AxiosHeaders(headers),
       data: JSON.stringify(body),
+      timeout: process.env.NODE_ENV === 'development' ? 10000 : 5000,
     };
 
     if (process.env.NODE_ENV === 'test') return config;

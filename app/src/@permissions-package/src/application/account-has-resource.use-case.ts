@@ -16,7 +16,7 @@ export class AccountHasResourceUseCase {
       where: {
         name: Equal(dto.resource.name),
         product: {
-          plans: {
+          account_products: {
             account: {
               id: Equal(dto.account.id),
             },

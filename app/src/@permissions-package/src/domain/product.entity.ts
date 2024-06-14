@@ -1,19 +1,18 @@
-import { Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Base } from './base';
-import { Plan } from './plan.entity';
 import { Resource } from './resouce.entity';
-import { IsString } from 'class-validator';
+import { AccountProducts } from './account-products.entity';
 
 @Entity()
 export class Product extends Base {
-  @PrimaryGeneratedColumn()
-  id: number = null;
+  @PrimaryGeneratedColumn('uuid')
+  id: string = null;
 
-  @IsString()
+  @Column()
   name: string = null;
 
-  @ManyToMany(() => Plan, (plan) => plan.products, { onDelete: 'CASCADE' })
-  plans: Array<Plan> = null;
+  @OneToMany(() => AccountProducts, (accountProducts) => accountProducts.product)
+  account_products: Array<AccountProducts> = null;
 
   @OneToMany(() => Resource, (resouce) => resouce.product)
   resources: Array<Resource> = null;
