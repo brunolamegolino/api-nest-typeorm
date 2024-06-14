@@ -11,8 +11,9 @@ export class GetAccountUseCase {
   public async execute(data: any): Promise<Account> {
     const dto: { account: Account } = data;
 
-    const account = await this.accountRepository.findOneByOrFail({
-      id: Equal(dto.account.id),
+    const account = await this.accountRepository.findOneOrFail({
+      where: { id: Equal(dto.account.id) },
+      relations: ['account_products.product'],
     });
 
     return account;

@@ -18,4 +18,7 @@ export class AccountProducts extends Base {
 
   @Column()
   price: number = null;
+
+  @Column({ nullable: true })
+  limit: number = null;
 }

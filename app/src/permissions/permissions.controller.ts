@@ -91,14 +91,19 @@ export class ValidatorController {
   }
 
   @All('*')
-  public async validator(@Request() request: any, @Body() body: any): Promise<any> {
+  public async validator(@Request() request: any): Promise<any> {
     const paths = request.url.split('/');
     const data: any = {};
     data.user = request.user;
     data.resource = await Resource.create<Partial<Resource>>({ name: paths[1] });
     data.account_user = await this.GetAccountUserUseCase.execute({ accountUser: { id: request.account_user_id }, user: data.user });
-    data.account = data.account_user.account;
+    data.account = await this.GetAccountUseCase.execute(data.account_user);
     data.permission = await Permission.create<Partial<Permission>>({ action: this.getActionFromMethod(request.method) });
+    data.products = {};
+    const products: any = {};
+    for (const account_product of data.account.account_products) {
+      products[account_product.product.name] = { ...account_product.product, limit: account_product.limit };
+    }
 
     await this.AccountHasResourceUseCase.execute(data);
 
@@ -111,6 +116,7 @@ export class ValidatorController {
       ...request.headers,
       user: JSON.stringify(data.user),
       account: JSON.stringify(data.account),
+      products: JSON.stringify(products),
       permissions: JSON.stringify(data.account_user.permissions),
     };
     return await this.RedirectUseCase.execute(request);
